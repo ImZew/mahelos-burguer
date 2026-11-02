@@ -301,7 +301,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="Ej. 300 123 4567"
+                        placeholder="Ej. 316 241 3051"
                         className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-sm text-gray-200 focus:outline-none focus:border-amber-500"
                       />
                     </div>
