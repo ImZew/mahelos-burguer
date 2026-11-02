@@ -1,141 +1,47 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
-import { Hero } from './components/Hero';
-import { MenuSection } from './components/MenuSection';
-import { InstagramFeed } from './components/InstagramFeed';
+import { Footer } from './components/Footer';
 import { ProductModal } from './components/ProductModal';
 import { CartDrawer } from './components/CartDrawer';
 import { FloatingCartBar } from './components/FloatingCartBar';
-import { LocationSection } from './components/LocationSection';
-import { Footer } from './components/Footer';
-import type { Product, CartItem, ExtraOption } from './types';
+import { HomePage } from './pages/HomePage';
+import { MenuPage } from './pages/MenuPage';
+import { AboutPage } from './pages/AboutPage';
+import { LocationPage } from './pages/LocationPage';
+import { CartProvider, useCart } from './context/CartContext';
 import { RESTAURANT_INFO } from './data/menuData';
 import { MessageCircle, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export const App: React.FC = () => {
-  // Load initial cart from localStorage
-  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('mahelos_cart');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
-
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  // Persist cart to localStorage
+// Scroll to top automatically when route changes
+const ScrollToTop: React.FC = () => {
+  const { pathname } = useLocation();
   useEffect(() => {
-    try {
-      localStorage.setItem('mahelos_cart', JSON.stringify(cartItems));
-    } catch (e) {
-      console.error('Error saving cart to storage', e);
-    }
-  }, [cartItems]);
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
 
-  const showToast = (message: string) => {
-    setToastMessage(message);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 2800);
-  };
-
-  const handleSelectProduct = (product: Product) => {
-    setSelectedProduct(product);
-    setIsModalOpen(true);
-  };
-
-  const handleQuickAdd = (product: Product) => {
-    const cartItemId = `${product.id}-default`;
-    setCartItems((prev) => {
-      const existing = prev.find((item) => item.cartItemId === cartItemId);
-      if (existing) {
-        return prev.map((item) =>
-          item.cartItemId === cartItemId ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [
-        ...prev,
-        {
-          cartItemId,
-          product,
-          quantity: 1,
-          selectedExtras: [],
-        },
-      ];
-    });
-    showToast(`¡${product.name} añadida al pedido!`);
-  };
-
-  const handleAddToCart = (
-    product: Product,
-    quantity: number,
-    extras: ExtraOption[],
-    notes: string
-  ) => {
-    const extrasKey = extras.map((e) => e.id).sort().join('_');
-    const notesKey = notes.trim().toLowerCase();
-    const cartItemId = `${product.id}-${extrasKey}-${notesKey || 'plain'}`;
-
-    setCartItems((prev) => {
-      const existing = prev.find((item) => item.cartItemId === cartItemId);
-      if (existing) {
-        return prev.map((item) =>
-          item.cartItemId === cartItemId
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-      return [
-        ...prev,
-        {
-          cartItemId,
-          product,
-          quantity,
-          selectedExtras: extras,
-          specialNotes: notes,
-        },
-      ];
-    });
-    showToast(`¡${product.name} personalizada y añadida!`);
-  };
-
-  const handleUpdateQuantity = (cartItemId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      handleRemoveItem(cartItemId);
-      return;
-    }
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.cartItemId === cartItemId ? { ...item, quantity: newQuantity } : item
-      )
-    );
-  };
-
-  const handleRemoveItem = (cartItemId: string) => {
-    setCartItems((prev) => prev.filter((item) => item.cartItemId !== cartItemId));
-  };
-
-  const handleClearCart = () => {
-    setCartItems([]);
-  };
-
-  const scrollToMenu = () => {
-    const menuEl = document.getElementById('menu');
-    if (menuEl) {
-      menuEl.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+const AppContent: React.FC = () => {
+  const {
+    items,
+    isCartOpen,
+    setIsCartOpen,
+    selectedProduct,
+    isModalOpen,
+    closeProductModal,
+    addToCart,
+    updateQuantity,
+    removeItem,
+    clearCart,
+    toastMessage,
+  } = useCart();
 
   return (
     <div className="min-h-screen bg-[#0d0f12] text-gray-100 flex flex-col font-sans selection:bg-orange-500 selection:text-black">
+      <ScrollToTop />
+
       {/* Toast Notification */}
       <AnimatePresence>
         {toastMessage && (
@@ -151,53 +57,50 @@ export const App: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Top Navbar */}
-      <Navbar
-        cartCount={totalCartCount}
-        onOpenCart={() => setIsCartOpen(true)}
-      />
+      {/* Persistent Navbar across all routes */}
+      <Navbar />
 
-      {/* Main Content */}
+      {/* Main Multi-page Routes */}
       <main className="flex-1">
-        <Hero onExploreMenu={scrollToMenu} />
-        <MenuSection
-          onSelectProduct={handleSelectProduct}
-          onQuickAdd={handleQuickAdd}
-        />
-        <InstagramFeed />
-        <LocationSection />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/menu" element={<MenuPage />} />
+          <Route path="/nosotros" element={<AboutPage />} />
+          <Route path="/ubicacion" element={<LocationPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </main>
 
-      {/* Footer */}
+      {/* Persistent Footer across all routes */}
       <Footer />
 
-      {/* Product Customization Modal */}
+      {/* Global Product Customization Modal */}
       <ProductModal
         product={selectedProduct}
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onAddToCart={handleAddToCart}
+        onClose={closeProductModal}
+        onAddToCart={addToCart}
       />
 
       {/* Slide-over Cart & WhatsApp Checkout Drawer */}
       <CartDrawer
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
-        items={cartItems}
-        onUpdateQuantity={handleUpdateQuantity}
-        onRemoveItem={handleRemoveItem}
-        onClearCart={handleClearCart}
+        items={items}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeItem}
+        onClearCart={clearCart}
       />
 
       {/* Floating Bottom Bar (visible when items are in cart) */}
       <FloatingCartBar
-        items={cartItems}
+        items={items}
         onOpenCart={() => setIsCartOpen(true)}
       />
 
       {/* Direct Floating WhatsApp Icon (Bottom Left) */}
       <a
-        href={`https://wa.me/${RESTAURANT_INFO.whatsappNumber}?text=${encodeURIComponent('¡Hola Mahelo\'s Burguer! Deseo pedir una hamburguesa al carbón.')}`}
+        href={`https://wa.me/${RESTAURANT_INFO.whatsappNumber}?text=${encodeURIComponent("¡Hola Mahelo's Burguer! Deseo pedir una hamburguesa al carbón.")}`}
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 left-6 z-40 w-13 h-13 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-black flex items-center justify-center shadow-2xl shadow-emerald-500/30 transition-all hover:scale-110 active:scale-95 group border-2 border-emerald-400"
@@ -209,6 +112,16 @@ export const App: React.FC = () => {
         </span>
       </a>
     </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <CartProvider>
+        <AppContent />
+      </CartProvider>
+    </BrowserRouter>
   );
 };
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { MessageCircle, Heart, ArrowUp } from 'lucide-react';
 import { RESTAURANT_INFO } from '../data/menuData';
 import { BrandLogo } from './BrandLogo';
@@ -15,11 +16,11 @@ export const Footer: React.FC = () => {
           
           {/* Brand Column */}
           <div className="md:col-span-5 space-y-4">
-            <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3 group">
               <BrandLogo size="md" />
               <div>
                 <span 
-                  className="text-2xl font-black text-white tracking-tight"
+                  className="text-2xl font-black text-white tracking-tight group-hover:text-amber-400 transition-colors"
                   style={{ fontFamily: 'var(--font-heading)' }}
                 >
                   MAHELO'S BURGUER
@@ -28,7 +29,7 @@ export const Footer: React.FC = () => {
                   AL CARBÓN • MINCA
                 </span>
               </div>
-            </div>
+            </Link>
             <p className="text-xs sm:text-sm text-gray-300 max-w-sm leading-relaxed">
               El auténtico sabor al carbón en la Sierra Nevada de Santa Marta. 100% preparadas sobre brasas vivas, pan de mantequilla, queso Colby Jack y acompañadas siempre de papitas criollas doradas.
             </p>
@@ -60,31 +61,31 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Quick Links Multipagina */}
           <div className="md:col-span-3 space-y-3">
             <h4 className="text-xs font-extrabold text-orange-400 uppercase tracking-wider">
-              Carta al Carbón
+              Navegación
             </h4>
-            <ul className="space-y-2 text-xs sm:text-sm">
+            <ul className="space-y-2 text-xs sm:text-sm font-semibold">
               <li>
-                <a href="#menu" className="hover:text-amber-400 transition-colors">
-                  Hamburguesas al Carbón (con Papitas Criollas)
-                </a>
+                <Link to="/" className="hover:text-amber-400 transition-colors">
+                  Inicio
+                </Link>
               </li>
               <li>
-                <a href="#menu" className="hover:text-amber-400 transition-colors">
-                  Para los Más Chicos (Sándwiches & Mini Perros)
-                </a>
+                <Link to="/menu" className="hover:text-amber-400 transition-colors">
+                  Menú al Carbón (con Papitas Criollas)
+                </Link>
               </li>
               <li>
-                <a href="#menu" className="hover:text-amber-400 transition-colors">
-                  Bebidas de la Casa (16 oz & Cervezas)
-                </a>
+                <Link to="/nosotros" className="hover:text-amber-400 transition-colors">
+                  Nuestra Historia en Minca
+                </Link>
               </li>
               <li>
-                <a href="#instagram" className="hover:text-amber-400 transition-colors">
-                  Comunidad @mahelos_burger
-                </a>
+                <Link to="/ubicacion" className="hover:text-amber-400 transition-colors">
+                  Sede, Horarios & Domicilios
+                </Link>
               </li>
             </ul>
           </div>
